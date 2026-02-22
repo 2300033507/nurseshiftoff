@@ -79,6 +79,17 @@ router.put('/:id/status', async (req, res) => {
         appointment.status = status;
         await appointment.save();
 
+        // If Approved/Confirmed, update Patient admission status
+        if (status === 'Confirmed') {
+            const Patient = require('../models/Patient');
+            // Find patient linked to this appointment's user
+            const patient = await Patient.findOne({ where: { userId: appointment.patientId } });
+            if (patient) {
+                patient.admissionStatus = 'Admitted';
+                await patient.save();
+            }
+        }
+
         res.json(appointment);
     } catch (error) {
         console.error('Error updating appointment:', error);

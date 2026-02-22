@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Button from '../components/Button';
 import Card from '../components/Card';
@@ -9,8 +9,15 @@ export default function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const { login } = useAuth();
+    const { login, user } = useAuth();
     const navigate = useNavigate();
+
+    // Redirect if already logged in
+    if (user) {
+        if (user.role === 'Nurse') return <Navigate to="/nurse" replace />;
+        if (user.role === 'Doctor') return <Navigate to="/doctor" replace />;
+        if (user.role === 'Patient') return <Navigate to="/patient" replace />;
+    }
 
     const handleSubmit = async (e) => {
         e.preventDefault();

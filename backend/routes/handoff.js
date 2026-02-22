@@ -69,5 +69,40 @@ router.get('/history/:patientId', async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
+// POST /api/handoff/email
+// Sends generated SBAR via email
+router.post('/email', async (req, res) => {
+    try {
+        const { email, patientName, sbar } = req.body;
+        if (!email || !sbar) {
+            return res.status(400).json({ error: 'Email and SBAR are required' });
+        }
+
+        const sendEmail = require('../utils/emailService');
+
+        const htmlContent = `
+            <h2>Shift Handoff Report for ${patientName || 'Patient'}</h2>
+            <h3>Situation</h3>
+            <p>${sbar.situation || 'N/A'}</p>
+            <h3>Background</h3>
+            <p>${sbar.background || 'N/A'}</p>
+            <h3>Assessment</h3>
+            <p>${sbar.assessment || 'N/A'}</p>
+            <h3>Recommendation</h3>
+            <p>${sbar.recommendation || 'N/A'}</p>
+        `;
+
+        await sendEmail({
+            email,
+            subject: `[Handoff Report] Patient: ${patientName || 'Patient'}`,
+            html: htmlContent
+        });
+
+        res.json({ message: 'Email sent successfully' });
+    } catch (error) {
+        console.error('Error sending email:', error);
+        res.status(500).json({ error: 'Failed to send email' });
+    }
+});
 
 module.exports = router;

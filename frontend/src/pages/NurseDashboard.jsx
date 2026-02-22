@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { Activity, User, ArrowRight, Clock, Check, X } from 'lucide-react';
+import { Activity, User, ArrowRight, Clock, Check, X, AlertTriangle } from 'lucide-react';
 import Card from '../components/Card';
 import Button from '../components/Button';
 import { getAllAppointments, updateAppointmentStatus } from '../api/appointment';
@@ -42,6 +42,13 @@ export default function NurseDashboard() {
     };
 
     const pendingAppointments = appointments.filter(a => a.status === 'Pending');
+    const confirmedAppointments = appointments.filter(a => a.status === 'Confirmed');
+
+    // Helper to check if patient should be shown (Admitted OR has confirmed appointment)
+    const isPatientAdmitted = (patient) => {
+        return patient.admissionStatus === 'Admitted' ||
+            confirmedAppointments.some(a => a.patientId === patient.userId);
+    };
 
     return (
         <div className="max-w-6xl mx-auto p-6 space-y-8">
@@ -91,33 +98,72 @@ export default function NurseDashboard() {
                     <div className="text-center py-12">Loading...</div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {patients.map(patient => (
-                            <Card key={patient.id} title={patient.name} icon={User}>
-                                <div className="space-y-4">
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-slate-500">Dept:</span>
-                                        <span className="font-medium">{patient.department}</span>
-                                    </div>
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-slate-500">Rm:</span>
-                                        <span className="font-medium">{patient.roomNumber || 'N/A'}</span>
-                                    </div>
+                        {patients.filter(isPatientAdmitted).map(patient => {
+                            const activeApt = confirmedAppointments.find(a => a.patientId === patient.userId);
 
-                                    <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${patient.triageLevel === 'Critical' ? 'bg-red-100 text-red-800' :
-                                            patient.triageLevel === 'Moderate' ? 'bg-yellow-100 text-yellow-800' :
-                                                'bg-green-100 text-green-800'
-                                        }`}>
-                                        {patient.triageLevel}
-                                    </div>
+                            return (
+                                <Card key={patient.id} title={patient.name} icon={User}>
+                                    <div className="space-y-4">
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-slate-500">Dept:</span>
+                                            <span className="font-medium">{patient.department}</span>
+                                        </div>
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-slate-500">Rm:</span>
+                                            <span className="font-medium">{patient.roomNumber || 'N/A'}</span>
+                                        </div>
 
-                                    <Link to={`/handoff/${patient.id}`} className="block mt-4">
-                                        <Button className="w-full flex items-center justify-center gap-2">
-                                            Start Handoff <ArrowRight size={16} />
-                                        </Button>
-                                    </Link>
-                                </div>
-                            </Card>
-                        ))}
+                                        <div className="flex gap-2 mt-2">
+                                            <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${patient.triageLevel === 'Critical' ? 'bg-red-100 text-red-800' :
+                                                patient.triageLevel === 'Moderate' ? 'bg-yellow-100 text-yellow-800' :
+                                                    'bg-green-100 text-green-800'
+                                                }`}>
+                                                {patient.triageLevel}
+                                            </div>
+                                            <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 ml-2">
+                                                {patient.admissionStatus}
+                                            </div>
+                                        </div>
+
+                                        {/* High Risk Alerts */}
+                                        {(patient.missedMedications > 0 || patient.fallRisk === 'High' || patient.lastBMHours >= 96 || patient.mealIntake === '<25%' || patient.isDrowsy) && (
+                                            <div className="mt-3 p-3 bg-red-50 border border-red-100 rounded-lg">
+                                                <div className="flex items-center gap-1.5 text-xs font-bold text-red-700 mb-2 uppercase">
+                                                    <AlertTriangle size={14} /> High-Risk Alerts
+                                                </div>
+                                                <ul className="text-sm text-red-800 space-y-1 pl-4 list-disc font-medium">
+                                                    {patient.missedMedications > 0 && <li>{patient.missedMedications} missed medication{patient.missedMedications > 1 ? 's' : ''}</li>}
+                                                    {patient.fallRisk === 'High' && <li>High Fall Risk</li>}
+                                                    {patient.lastBMHours >= 96 && <li>No BM in {patient.lastBMHours} hours</li>}
+                                                    {patient.mealIntake === '<25%' && <li>Ate {patient.mealIntake} of meals</li>}
+                                                    {patient.isDrowsy && <li>Patient is drowsy</li>}
+                                                </ul>
+                                            </div>
+                                        )}
+
+                                        {activeApt && (
+                                            <div className="mt-3 pt-3 border-t border-slate-100">
+                                                <div className="text-xs text-slate-500 uppercase font-semibold mb-1">Appointment Details</div>
+                                                <div className="text-sm text-slate-700">
+                                                    <span className="font-medium">Date: </span>
+                                                    {activeApt.requestedDate ? new Date(activeApt.requestedDate).toLocaleDateString() : 'N/A'}
+                                                </div>
+                                                <div className="text-sm text-slate-700 mt-1">
+                                                    <span className="font-medium">Reason: </span>
+                                                    {activeApt.reason}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <Link to={`/handoff/${patient.id}`} className="block mt-4">
+                                            <Button className="w-full flex items-center justify-center gap-2">
+                                                Start Handoff <ArrowRight size={16} />
+                                            </Button>
+                                        </Link>
+                                    </div>
+                                </Card>
+                            )
+                        })}
                     </div>
                 )}
 

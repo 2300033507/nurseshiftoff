@@ -25,6 +25,17 @@ const generateSBAR = (notes, patient) => {
     if (patient) {
         sbar.background.push(`Patient admitted for ${patient.diagnosis || patient.symptoms}.`);
         sbar.background.push(`History: ${patient.symptoms}`);
+
+        let alerts = [];
+        if (patient.missedMedications > 0) alerts.push(`${patient.missedMedications} missed medications`);
+        if (patient.fallRisk === 'High') alerts.push(`high fall risk`);
+        if (patient.lastBMHours >= 96) alerts.push(`no BM in ${patient.lastBMHours} hours`);
+        if (patient.mealIntake === '<25%') alerts.push(`ate ${patient.mealIntake} of meals`);
+        if (patient.isDrowsy) alerts.push(`patient is drowsy`);
+
+        if (alerts.length > 0) {
+            sbar.situation.push(`HIGH-RISK ALERTS: ${alerts.join(', ')}`);
+        }
     }
 
     // 2. Classify sentences

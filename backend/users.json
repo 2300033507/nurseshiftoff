@@ -1,0 +1,56 @@
+[
+  {
+    "id": 1,
+    "username": "vikas",
+    "email": "vikas@gmail.com",
+    "role": "Patient"
+  },
+  {
+    "id": 2,
+    "username": "nurse",
+    "email": "vikas1@gmail.com",
+    "role": "Nurse"
+  },
+  {
+    "id": 3,
+    "username": "Dr. Smith",
+    "email": "doctor1@gmail.com",
+    "role": "Doctor"
+  },
+  {
+    "id": 4,
+    "username": "Dr. Jones",
+    "email": "doctor2@gmail.com",
+    "role": "Doctor"
+  },
+  {
+    "id": 5,
+    "username": "Dr. Williams",
+    "email": "doctor3@gmail.com",
+    "role": "Doctor"
+  },
+  {
+    "id": 6,
+    "username": "Nurse Vicky",
+    "email": "nurse@hospital.com",
+    "role": "Nurse"
+  },
+  {
+    "id": 10,
+    "username": "Nurse Vicky1",
+    "email": "vicky@hospital.com",
+    "role": "Nurse"
+  },
+  {
+    "id": 11,
+    "username": "Dr. Smith1",
+    "email": "dsmith@hospital.com",
+    "role": "Doctor"
+  },
+  {
+    "id": 13,
+    "username": "Mr. Smith",
+    "email": "smith@patient.com",
+    "role": "Patient"
+  }
+]

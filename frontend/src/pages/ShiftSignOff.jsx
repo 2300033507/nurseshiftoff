@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Mic, FileText, Sparkles, Save, ArrowLeft } from 'lucide-react';
+import { Mic, FileText, Sparkles, Save, ArrowLeft, Mail } from 'lucide-react';
 import Card from '../components/Card';
 import Button from '../components/Button';
-import { generateHandoffPreview, saveHandoff, getHandoffHistory } from '../api/handoff';
+import { generateHandoffPreview, saveHandoff, getHandoffHistory, sendHandoffEmail } from '../api/handoff';
 
 export default function ShiftSignOff() {
     const { patientId } = useParams();
@@ -16,6 +16,8 @@ export default function ShiftSignOff() {
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
     const [history, setHistory] = useState([]);
+    const [targetEmail, setTargetEmail] = useState("");
+    const [emailing, setEmailing] = useState(false);
 
     useEffect(() => {
         // Fetch patient details (reuse list endpoint or generic fetch for now)
@@ -72,6 +74,25 @@ export default function ShiftSignOff() {
             alert("Failed to save handoff");
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleEmailSubmit = async () => {
+        if (!sbar || !targetEmail) return;
+        setEmailing(true);
+        try {
+            await sendHandoffEmail({
+                email: targetEmail,
+                patientName: patient.name,
+                sbar: sbar
+            });
+            alert("Email sent successfully!");
+            setTargetEmail("");
+        } catch (error) {
+            console.error("Error sending email", error);
+            alert("Failed to send email.");
+        } finally {
+            setEmailing(false);
         }
     };
 
@@ -159,6 +180,28 @@ export default function ShiftSignOff() {
                                 <Button onClick={handleSave} disabled={saving} className="w-full mt-4 bg-green-600 hover:bg-green-700">
                                     {saving ? 'Saving...' : 'Finalize & Save Handoff'}
                                 </Button>
+
+                                <div className="mt-6 pt-4 border-t border-slate-200">
+                                    <h4 className="text-sm font-semibold text-slate-700 mb-2">Manual Email Override</h4>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="email"
+                                            placeholder="doctor@hospital.com"
+                                            value={targetEmail}
+                                            onChange={(e) => setTargetEmail(e.target.value)}
+                                            className="flex-1 p-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-medical-200"
+                                        />
+                                        <Button
+                                            variant="outline"
+                                            disabled={emailing || !targetEmail}
+                                            onClick={handleEmailSubmit}
+                                            className="flex items-center gap-1 shrink-0"
+                                        >
+                                            <Mail size={16} /> {emailing ? 'Sending...' : 'Send'}
+                                        </Button>
+                                    </div>
+                                    <p className="text-xs text-slate-500 mt-1">Quickly forward this exact SBAR report via email to onboarding staff or doctors.</p>
+                                </div>
                             </div>
                         ) : (
                             <div className="h-full flex items-center justify-center text-slate-400">

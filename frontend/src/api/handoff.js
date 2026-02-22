@@ -19,3 +19,7 @@ export const saveHandoff = async (data) => {
 export const getHandoffHistory = async (patientId) => {
     return axios.get(`${API_URL}/handoff/history/${patientId}`);
 };
+
+export const sendHandoffEmail = async (data) => {
+    return axios.post(`${API_URL}/handoff/email`, data);
+};

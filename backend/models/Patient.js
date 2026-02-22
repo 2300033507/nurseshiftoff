@@ -44,6 +44,30 @@ const Patient = sequelize.define('Patient', {
             model: 'Users',
             key: 'id',
         }
+    },
+    admissionStatus: {
+        type: DataTypes.ENUM('Pending', 'Admitted', 'Discharged'),
+        defaultValue: 'Pending'
+    },
+    missedMedications: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0
+    },
+    fallRisk: {
+        type: DataTypes.ENUM('Low', 'Medium', 'High'),
+        defaultValue: 'Low'
+    },
+    lastBMHours: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0
+    },
+    mealIntake: {
+        type: DataTypes.STRING,
+        defaultValue: 'Normal' // e.g., '<25%', '>50%', 'Normal'
+    },
+    isDrowsy: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
     }
 });
 

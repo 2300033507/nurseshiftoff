@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Button from '../components/Button';
 import Card from '../components/Card';
@@ -13,8 +13,15 @@ export default function Register() {
         role: 'Patient'
     });
     const [error, setError] = useState('');
-    const { register } = useAuth();
+    const { register, user } = useAuth();
     const navigate = useNavigate();
+
+    // Redirect if already logged in
+    if (user) {
+        if (user.role === 'Nurse') return <Navigate to="/nurse" replace />;
+        if (user.role === 'Doctor') return <Navigate to="/doctor" replace />;
+        if (user.role === 'Patient') return <Navigate to="/patient" replace />;
+    }
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });

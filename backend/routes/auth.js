@@ -38,29 +38,27 @@ router.post('/register', async (req, res) => {
                 where: { specialization: targetSpec }
             });
 
+            // Generate dynamic clinical notes for new patients
+            const clinicalCases = [
+                { symptoms: 'Patient reports acute chest discomfort radiating to left arm.', diagnosis: 'Suspected Angina / Tachycardia', severity: 7, triageLevel: 'Moderate' },
+                { symptoms: 'Reports severe arthralgia and limited range of motion. Joint effusion present.', diagnosis: 'Acute monoarthritis', severity: 5, triageLevel: 'Low' },
+                { symptoms: 'Patient exhibits persistent cephalgia accompanied by photophobia.', diagnosis: 'Migraine Exacerbation', severity: 6, triageLevel: 'Moderate' },
+                { symptoms: 'Shortness of breath and mild hypoxemia on room air. Expiratory wheezes.', diagnosis: 'Acute exacerbation of COPD', severity: 8, triageLevel: 'Critical' },
+                { symptoms: 'Mild erythema and edema in the lower left extremity.', diagnosis: 'Peripheral edema', severity: 3, triageLevel: 'Low' }
+            ];
+            const randomCase = clinicalCases[Math.floor(Math.random() * clinicalCases.length)];
+
             await Patient.create({
                 name: username,
-                age: 0,
-                condition: 'Unknown',
-                triageLevel: 'Non-Urgent',
+                age: Math.floor(Math.random() * 40) + 20, // Random age between 20-60
+                symptoms: randomCase.symptoms,
+                severity: randomCase.severity,
+                diagnosis: randomCase.diagnosis,
+                triageLevel: randomCase.triageLevel,
                 department: targetSpec,
                 assignedDoctorId: doctor ? doctor.id : null,
                 userId: newUser.id
             });
-
-            if (doctor) {
-                try {
-                    const sendEmail = require('../utils/emailService');
-                    await sendEmail({
-                        email: newUser.email,
-                        subject: 'Your Care Team Assignment - AI CareFlow',
-                        message: `Welcome to AI CareFlow, ${username}!\n\nBased on your department selection (${targetSpec}), you have been assigned to:\n\nDr. ${doctor.name}\nSpecialization: ${doctor.specialization}\n\nYou can view your care team details in the Patient Portal.`
-                    });
-                } catch (emailErr) {
-                    console.error('Failed to send assignment email:', emailErr);
-                    // Continue registration even if email fails
-                }
-            }
         }
 
         res.status(201).json({ message: 'User registered successfully' });

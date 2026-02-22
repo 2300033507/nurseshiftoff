@@ -55,7 +55,7 @@ const seedDoctors = async () => {
 };
 
 // Start Server & Sync DB
-sequelize.sync({ alter: true }) // Update schema without dropping data
+sequelize.sync() // Update schema without dropping data
     .then(() => {
         console.log('Database synced');
         seedDoctors();
