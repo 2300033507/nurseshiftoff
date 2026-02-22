@@ -1,27 +1,17 @@
-FROM node:20-alpine AS build
+# Use Node image
+FROM node:18-alpine
 
 WORKDIR /app
 
+# Install dependencies
 COPY package*.json ./
 RUN npm install
 
+# Copy source code
 COPY . .
-RUN npm run build
 
-FROM nginx:alpine
+# Expose port 5173
+EXPOSE 5173
 
-# Configure nginx for SPA routing (React Router fallback)
-RUN echo "server {" > /etc/nginx/conf.d/default.conf && \
-    echo "    listen 80;" >> /etc/nginx/conf.d/default.conf && \
-    echo "    location / {" >> /etc/nginx/conf.d/default.conf && \
-    echo "        root   /usr/share/nginx/html;" >> /etc/nginx/conf.d/default.conf && \
-    echo "        index  index.html index.htm;" >> /etc/nginx/conf.d/default.conf && \
-    echo "        try_files \$uri \$uri/ /index.html;" >> /etc/nginx/conf.d/default.conf && \
-    echo "    }" >> /etc/nginx/conf.d/default.conf && \
-    echo "}" >> /etc/nginx/conf.d/default.conf
-
-COPY --from=build /app/dist /usr/share/nginx/html
-
-EXPOSE 80
-
-CMD ["nginx", "-g", "daemon off;"]
+# IMPORTANT: The --host flag allows external access
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

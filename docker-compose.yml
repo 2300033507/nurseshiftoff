@@ -13,7 +13,7 @@ services:
       - db_data:/var/lib/mysql
 
   backend:
-    build: 
+    build:
       context: ./backend
       dockerfile: Dockerfile
     restart: on-failure
@@ -36,7 +36,9 @@ services:
     depends_on:
       - backend
     ports:
-      - '80:80'
+      - '5173:5173' # Changed to 5173 to match your AWS Security Group
+    environment:
+      - VITE_API_URL=http://52.201.236.146:5000
 
 volumes:
   db_data:
